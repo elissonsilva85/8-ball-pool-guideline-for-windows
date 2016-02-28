@@ -1,0 +1,8 @@
+D:\Elisson\Projetos\8BallPool\8BallPool\bin\Release\8BallPool.exe.config
+D:\Elisson\Projetos\8BallPool\8BallPool\bin\Release\8BallPool.exe
+D:\Elisson\Projetos\8BallPool\8BallPool\bin\Release\8BallPool.pdb
+D:\Elisson\Projetos\8BallPool\8BallPool\obj\Release\_8BallPool.FormMain.resources
+D:\Elisson\Projetos\8BallPool\8BallPool\obj\Release\_8BallPool.Properties.Resources.resources
+D:\Elisson\Projetos\8BallPool\8BallPool\obj\Release\8BallPool.csproj.GenerateResource.Cache
+D:\Elisson\Projetos\8BallPool\8BallPool\obj\Release\8BallPool.exe
+D:\Elisson\Projetos\8BallPool\8BallPool\obj\Release\8BallPool.pdb
