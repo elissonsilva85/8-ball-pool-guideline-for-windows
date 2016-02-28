@@ -17,8 +17,8 @@ The objetive is help you to aim the ball correctli to your desire role in pool g
 
 ### Screenshot
 
-![](https://elissonsilva.com.br/jobs/8ball/print1.jpg)
+![](http://elissonsilva.com.br/jobs/8ball/print1.jpg)
 
-![](https://elissonsilva.com.br/jobs/8ball/print2.jpg)
+![](http://elissonsilva.com.br/jobs/8ball/print2.jpg)
 
-![](https://elissonsilva.com.br/jobs/8ball/print3.jpg)
+![](http://elissonsilva.com.br/jobs/8ball/print3.jpg)
