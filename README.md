@@ -21,8 +21,8 @@ The objective is help you to aim the ball correctly to your desired role in pool
 
 ### Screenshot
 
-![](http://elissonsilva.com.br/jobs/8ball/print1.jpg)
+![](http://elissonsilva.com.br/8ball/print1.jpg)
 
-![](http://elissonsilva.com.br/jobs/8ball/print2.jpg)
+![](http://elissonsilva.com.br/8ball/print2.jpg)
 
-![](http://elissonsilva.com.br/jobs/8ball/print3.jpg)
+![](http://elissonsilva.com.br/8ball/print3.jpg)
