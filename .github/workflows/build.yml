@@ -18,14 +18,43 @@ jobs:
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
 
+      - name: Set version number
+        id: version
+        shell: pwsh
+        run: |
+          $version = "1.0.${{ github.run_number }}.0"
+          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+          echo "Building version $version"
+
+          $file = "8BallPool/Properties/AssemblyInfo.cs"
+          $content = Get-Content $file -Raw
+          $content = $content -replace 'AssemblyVersion\("[\d\.]+"\)', "AssemblyVersion(`"$version`")"
+          $content = $content -replace 'AssemblyFileVersion\("[\d\.]+"\)', "AssemblyFileVersion(`"$version`")"
+          Set-Content $file $content
+
       - name: Build solution
         run: msbuild 8BallPool.sln /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 8BallPool
+          name: 8BallPool-v${{ steps.version.outputs.VERSION }}
           path: |
             8BallPool/bin/Release/8BallPool.exe
             8BallPool/bin/Release/8BallPool.exe.config
           if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: Release v${{ steps.version.outputs.VERSION }}
+          body: |
+            Automated release from build #${{ github.run_number }}
+
+            **Version:** ${{ steps.version.outputs.VERSION }}
+            **Commit:** ${{ github.sha }}
+          files: |
+            8BallPool/bin/Release/8BallPool.exe
+            8BallPool/bin/Release/8BallPool.exe.config

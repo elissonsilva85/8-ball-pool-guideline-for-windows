@@ -23,16 +23,22 @@ namespace _8BallPool
         {
             InitializeComponent();
 
-            this.DoubleBuffered = true;
-            this.SetStyle(
-                ControlStyles.OptimizedDoubleBuffer |
-                ControlStyles.AllPaintingInWmPaint |
-                ControlStyles.UserPaint, true);
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint, true);
 
             Pocket.Initialize();
             lastBallPosition = new Point(this.Width / 2, this.Height / 2);
             isDragging = false;
             isTransparent = true;
+        }
+
+        protected override CreateParams CreateParams
+        {
+            get
+            {
+                CreateParams cp = base.CreateParams;
+                cp.ExStyle |= 0x02000000; // WS_EX_COMPOSITED — flicker-free without conflicting with layered windows
+                return cp;
+            }
         }
 
         private void FormMain_Paint(object sender, PaintEventArgs e)
