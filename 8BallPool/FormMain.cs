@@ -1,167 +1,216 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+using System;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
 namespace _8BallPool
 {
     public partial class FormMain : Form
     {
-        private readonly int refferBallSize = 25;
+        private const int ReferenceBallSize = 25;
+        private const int BallCenterDotSize = 2;
+        private const int BallHitAreaRadius = 15;
+        private const int CornerLineLength = 40;
+        private const int CornerLineThickness = 4;
+        private const int PocketIndicatorSize = 3;
+        private const int GuideLineThickness = 3;
+
         private Point lastBallPosition;
-        private System.Windows.Forms.MouseButtons lastMouseButton;
+        private bool isDragging;
+        private bool isTransparent;
 
         public FormMain()
         {
             InitializeComponent();
-            Role.Initialize();
+
+            this.DoubleBuffered = true;
+            this.SetStyle(
+                ControlStyles.OptimizedDoubleBuffer |
+                ControlStyles.AllPaintingInWmPaint |
+                ControlStyles.UserPaint, true);
+
+            Pocket.Initialize();
             lastBallPosition = new Point(this.Width / 2, this.Height / 2);
-            lastMouseButton = System.Windows.Forms.MouseButtons.None;
+            isDragging = false;
+            isTransparent = true;
         }
 
         private void FormMain_Paint(object sender, PaintEventArgs e)
         {
-            Role.UpdatePoints(this);
-            DrawElements();
-        }
-
-        private void DrawElements()
-        {
-            Graphics g = this.CreateGraphics();
-            g.Clear(Color.White);
+            Pocket.UpdatePoints(this.Width, this.Height);
             this.Text = "8 Ball Pool Guidelines (" + this.Width + "x" + this.Height + ")";
+
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
             DrawCorners(g);
-            DrawRoles(g);
+            DrawPockets(g);
             DrawBall(g);
             DrawGuideLines(g);
-            g.Dispose();
         }
 
         private void DrawCorners(Graphics g)
         {
-            Point referencePoint, coordHor, coordVer;
-            int lineSize = 40;
-            int lineHeight = 4;
-            Pen myPen = new Pen(Color.FromArgb(128, 0, 0, 255), lineHeight);
-            // top left
-            referencePoint = Role.GetPoint(RolePosition.TopLeft);
-            coordHor = referencePoint;
-            coordHor.X += lineSize;
-            coordVer = referencePoint;
-            coordVer.Y += lineSize;
-            g.DrawLines(myPen, new Point[] { coordHor, referencePoint, coordVer });
-            // bottom left
-            referencePoint = Role.GetPoint(RolePosition.BottomLeft);
-            coordHor = referencePoint;
-            coordHor.X += lineSize;
-            coordVer = referencePoint;
-            coordVer.Y -= lineSize;
-            g.DrawLines(myPen, new Point[] { coordHor, referencePoint, coordVer });
-            // top right
-            referencePoint = Role.GetPoint(RolePosition.TopRight);
-            coordHor = referencePoint;
-            coordHor.X -= lineSize;
-            coordVer = referencePoint;
-            coordVer.Y += lineSize;
-            g.DrawLines(myPen, new Point[] { coordHor, referencePoint, coordVer });
-            // bottom right
-            referencePoint = Role.GetPoint(RolePosition.BottomRight);
-            coordHor = referencePoint;
-            coordHor.X -= lineSize;
-            coordVer = referencePoint;
-            coordVer.Y -= lineSize;
-            g.DrawLines(myPen, new Point[] { coordHor, referencePoint, coordVer });
+            using (Pen pen = new Pen(Color.FromArgb(128, 0, 0, 255), CornerLineThickness))
+            {
+                DrawCorner(g, pen, PocketPosition.TopLeft, +1, +1);
+                DrawCorner(g, pen, PocketPosition.BottomLeft, +1, -1);
+                DrawCorner(g, pen, PocketPosition.TopRight, -1, +1);
+                DrawCorner(g, pen, PocketPosition.BottomRight, -1, -1);
+            }
         }
 
-        private void DrawRoles(Graphics g)
+        private void DrawCorner(Graphics g, Pen pen, PocketPosition position, int dirX, int dirY)
         {
-            int size = 3;
-            Pen myPen = new Pen(Color.FromArgb(128, 255, 0, 0), size);
-            g.DrawEllipse(myPen, Role.GetPoint(RolePosition.TopLeft).X, Role.GetPoint(RolePosition.TopLeft).Y, size, size);
-            g.DrawEllipse(myPen, Role.GetPoint(RolePosition.TopMiddle).X - 2, Role.GetPoint(RolePosition.TopMiddle).Y, size, size);
-            g.DrawEllipse(myPen, Role.GetPoint(RolePosition.TopRight).X - 4, Role.GetPoint(RolePosition.TopRight).Y, size, size);
-            g.DrawEllipse(myPen, Role.GetPoint(RolePosition.BottomLeft).X, Role.GetPoint(RolePosition.BottomLeft).Y - 4, size, size);
-            g.DrawEllipse(myPen, Role.GetPoint(RolePosition.BottomMiddle).X - 2, Role.GetPoint(RolePosition.BottomMiddle).Y - 4, size, size);
-            g.DrawEllipse(myPen, Role.GetPoint(RolePosition.BottomRight).X - 4, Role.GetPoint(RolePosition.BottomRight).Y - 4, size, size);
+            Point reference = Pocket.GetPoint(position);
+            Point coordHor = new Point(reference.X + dirX * CornerLineLength, reference.Y);
+            Point coordVer = new Point(reference.X, reference.Y + dirY * CornerLineLength);
+            g.DrawLines(pen, new[] { coordHor, reference, coordVer });
+        }
 
+        private void DrawPockets(Graphics g)
+        {
+            using (Pen pen = new Pen(Color.FromArgb(128, 255, 0, 0), PocketIndicatorSize))
+            {
+                foreach (PocketPosition position in Enum.GetValues(typeof(PocketPosition)))
+                {
+                    Point pt = Pocket.GetPoint(position);
+                    int offsetX = GetPocketOffsetX(position);
+                    int offsetY = GetPocketOffsetY(position);
+                    g.DrawEllipse(pen, pt.X + offsetX, pt.Y + offsetY, PocketIndicatorSize, PocketIndicatorSize);
+                }
+            }
+        }
+
+        private int GetPocketOffsetX(PocketPosition position)
+        {
+            switch (position)
+            {
+                case PocketPosition.TopMiddle:
+                case PocketPosition.BottomMiddle:
+                    return -2;
+                case PocketPosition.TopRight:
+                case PocketPosition.BottomRight:
+                    return -4;
+                default:
+                    return 0;
+            }
+        }
+
+        private int GetPocketOffsetY(PocketPosition position)
+        {
+            switch (position)
+            {
+                case PocketPosition.BottomLeft:
+                case PocketPosition.BottomMiddle:
+                case PocketPosition.BottomRight:
+                    return -4;
+                default:
+                    return 0;
+            }
         }
 
         private void DrawBall(Graphics g)
         {
-            int ballSizeInside = 2;
-            Pen myPenOutside = new Pen(Color.FromArgb(60, 144, 144, 144), 1);
-            Pen myPenInside = new Pen(Color.FromArgb(250, 0, 0, 0), 2);
             Point pt = lastBallPosition;
-            Rectangle rectOutisde = new Rectangle(pt.X - refferBallSize / 2, pt.Y - refferBallSize / 2, refferBallSize, refferBallSize);
-            Rectangle rectInside = new Rectangle(pt.X - ballSizeInside / 2, pt.Y - ballSizeInside / 2, ballSizeInside, ballSizeInside);
-            g.DrawEllipse(myPenOutside, rectOutisde);
-            g.DrawEllipse(myPenInside, rectInside);
+            int halfBall = ReferenceBallSize / 2;
+            int halfDot = BallCenterDotSize / 2;
+
+            Rectangle rectOutside = new Rectangle(pt.X - halfBall, pt.Y - halfBall, ReferenceBallSize, ReferenceBallSize);
+            Rectangle rectInside = new Rectangle(pt.X - halfDot, pt.Y - halfDot, BallCenterDotSize, BallCenterDotSize);
+
+            using (Pen penOutside = new Pen(Color.FromArgb(60, 144, 144, 144), 1))
+            using (Pen penInside = new Pen(Color.FromArgb(250, 0, 0, 0), 2))
+            {
+                g.DrawEllipse(penOutside, rectOutside);
+                g.DrawEllipse(penInside, rectInside);
+            }
         }
 
         private void DrawGuideLines(Graphics g)
         {
-            Pen myPen = new Pen(Color.FromArgb(60, 144, 144, 144), 2);
-
-            g.DrawLine(myPen, lastBallPosition, Role.GetPoint(RolePosition.TopRight));
-            g.DrawLine(myPen, lastBallPosition, Role.GetPoint(RolePosition.TopMiddle));
-            g.DrawLine(myPen, lastBallPosition, Role.GetPoint(RolePosition.TopLeft));
-
-            g.DrawLine(myPen, lastBallPosition, Role.GetPoint(RolePosition.BottomRight));
-            g.DrawLine(myPen, lastBallPosition, Role.GetPoint(RolePosition.BottomMiddle));
-            g.DrawLine(myPen, lastBallPosition, Role.GetPoint(RolePosition.BottomLeft));
+            using (Pen pen = new Pen(Color.FromArgb(60, 144, 144, 144), GuideLineThickness))
+            {
+                foreach (PocketPosition position in Enum.GetValues(typeof(PocketPosition)))
+                {
+                    g.DrawLine(pen, lastBallPosition, Pocket.GetPoint(position));
+                }
+            }
         }
 
         private void FormMain_MouseUp(object sender, MouseEventArgs e)
         {
-            lastMouseButton = System.Windows.Forms.MouseButtons.None;
+            isDragging = false;
         }
 
         private void FormMain_MouseDown(object sender, MouseEventArgs e)
         {
-            Rectangle rect = new Rectangle(lastBallPosition.X - 15, lastBallPosition.Y - 15, 30, 30);
+            Rectangle hitArea = new Rectangle(
+                lastBallPosition.X - BallHitAreaRadius,
+                lastBallPosition.Y - BallHitAreaRadius,
+                BallHitAreaRadius * 2,
+                BallHitAreaRadius * 2);
 
-            if (rect.Contains(e.X, e.Y))
+            if (hitArea.Contains(e.X, e.Y))
             {
-                lastMouseButton = e.Button;
+                isDragging = true;
                 lastBallPosition = new Point(e.X, e.Y);
-                Graphics g = this.CreateGraphics();
-                DrawBall(g);
+                this.Invalidate();
             }
         }
 
         private void FormMain_MouseMove(object sender, MouseEventArgs e)
         {
-            Rectangle rect = new Rectangle(lastBallPosition.X - 15, lastBallPosition.Y - 15, 30, 30);
-            if (rect.Contains(e.X, e.Y) || lastMouseButton == System.Windows.Forms.MouseButtons.Left)
+            Rectangle hitArea = new Rectangle(
+                lastBallPosition.X - BallHitAreaRadius,
+                lastBallPosition.Y - BallHitAreaRadius,
+                BallHitAreaRadius * 2,
+                BallHitAreaRadius * 2);
+
+            if (hitArea.Contains(e.X, e.Y) || isDragging)
             {
                 Cursor.Current = Cursors.Hand;
-                if (lastMouseButton == System.Windows.Forms.MouseButtons.Left)
+                if (isDragging)
                     lastBallPosition = new Point(e.X, e.Y);
             }
             else
             {
                 Cursor.Current = Cursors.Default;
             }
-            DrawElements();
+
+            this.Invalidate();
         }
 
         private void FormMain_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Space)
             {
-                if (this.TransparencyKey == System.Drawing.Color.Silver)
+                isTransparent = !isTransparent;
+                if (isTransparent)
                 {
-                    this.TransparencyKey = System.Drawing.Color.White;
-                } else
+                    this.TransparencyKey = Color.Empty;
+                    this.Opacity = 0.7D;
+                }
+                else
                 {
-                    this.TransparencyKey = System.Drawing.Color.Silver;
+                    this.TransparencyKey = this.BackColor;
+                    this.Opacity = 1.0D;
                 }
             }
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            ClampBallPosition();
+            this.Invalidate();
+        }
+
+        private void ClampBallPosition()
+        {
+            int x = Math.Max(0, Math.Min(lastBallPosition.X, this.ClientSize.Width));
+            int y = Math.Max(0, Math.Min(lastBallPosition.Y, this.ClientSize.Height));
+            lastBallPosition = new Point(x, y);
         }
     }
 }

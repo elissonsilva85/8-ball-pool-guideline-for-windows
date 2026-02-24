@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace _8BallPool
 {
-    enum RolePosition
+    enum PocketPosition
     {
         TopRight = 0,
         TopMiddle = 1,
@@ -15,5 +9,4 @@ namespace _8BallPool
         BottomMiddle = 4,
         BottomLeft = 5
     }
-
 }
