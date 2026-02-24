@@ -48,8 +48,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Role.cs" />
-    <Compile Include="RolePosition.cs" />
+    <Compile Include="Pocket.cs" />
+    <Compile Include="PocketPosition.cs" />
     <Compile Include="FormMain.cs">
       <SubType>Form</SubType>
     </Compile>

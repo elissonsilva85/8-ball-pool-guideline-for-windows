@@ -10,7 +10,9 @@ This program was developed in Visual Studio 2013.
 
 The objective is help you to aim the ball correctly to your desired role in pool game.
 
-[8 Ball Poll Facebook Game](https://apps.facebook.com/livepool/)
+[8 Ball Poll Offical Website](https://8ballpool.com/en/game)
+[8 Ball Poll Android App](https://play.google.com/st\ore/apps/details?id=com.miniclip.eightballpool&hl=en)
+[8 Ball Poll IOS](https://apps.apple.com/br/app/8-ball-pool/id543186831)
 
 ### How to use it
 

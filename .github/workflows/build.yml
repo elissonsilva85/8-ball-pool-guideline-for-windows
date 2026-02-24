@@ -1,0 +1,31 @@
+name: Build and Package
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build:
+    name: Build Application
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build solution
+        run: msbuild 8BallPool.sln /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 8BallPool
+          path: |
+            8BallPool/bin/Release/8BallPool.exe
+            8BallPool/bin/Release/8BallPool.exe.config
+          if-no-files-found: error
