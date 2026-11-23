@@ -1,35 +1,33 @@
-using System;
-using System.Drawing;
+namespace EightBallPool;
 
-namespace _8BallPool
+/// <summary>Computes where the six pockets are, given the table area the overlay covers.</summary>
+internal static class Pocket
 {
-    static class Pocket
+    public static PocketPosition[] All { get; } = Enum.GetValues<PocketPosition>();
+
+    public static Point GetPoint(PocketPosition position, Rectangle table)
     {
-        private const int TotalPockets = 6;
-        private const int DrawMargin = 10;
-        private const int AdjustX = 15;
-        private const int AdjustY = 40;
+        int centerX = table.Left + table.Width / 2;
 
-        private static Point[] pocketPoints;
-
-        public static void Initialize()
+        return position switch
         {
-            pocketPoints = new Point[TotalPockets];
-        }
-
-        public static void UpdatePoints(int width, int height)
-        {
-            pocketPoints[(int)PocketPosition.TopLeft] = new Point(DrawMargin, DrawMargin);
-            pocketPoints[(int)PocketPosition.TopMiddle] = new Point(width / 2 - 5, DrawMargin);
-            pocketPoints[(int)PocketPosition.TopRight] = new Point(width - DrawMargin - AdjustX, DrawMargin);
-            pocketPoints[(int)PocketPosition.BottomLeft] = new Point(DrawMargin, height - DrawMargin - AdjustY);
-            pocketPoints[(int)PocketPosition.BottomMiddle] = new Point(width / 2 - 5, height - DrawMargin - AdjustY);
-            pocketPoints[(int)PocketPosition.BottomRight] = new Point(width - DrawMargin - AdjustX, height - DrawMargin - AdjustY);
-        }
-
-        public static Point GetPoint(PocketPosition position)
-        {
-            return pocketPoints[(int)position];
-        }
+            PocketPosition.TopLeft => new Point(table.Left, table.Top),
+            PocketPosition.TopMiddle => new Point(centerX, table.Top),
+            PocketPosition.TopRight => new Point(table.Right, table.Top),
+            PocketPosition.BottomLeft => new Point(table.Left, table.Bottom),
+            PocketPosition.BottomMiddle => new Point(centerX, table.Bottom),
+            PocketPosition.BottomRight => new Point(table.Right, table.Bottom),
+            _ => throw new ArgumentOutOfRangeException(nameof(position), position, null),
+        };
     }
+
+    /// <summary>Direction the corner bracket arms point to (towards the table interior); (0, 0) for middle pockets.</summary>
+    public static (int X, int Y) InwardDirection(PocketPosition position) => position switch
+    {
+        PocketPosition.TopLeft => (+1, +1),
+        PocketPosition.TopRight => (-1, +1),
+        PocketPosition.BottomLeft => (+1, -1),
+        PocketPosition.BottomRight => (-1, -1),
+        _ => (0, 0),
+    };
 }

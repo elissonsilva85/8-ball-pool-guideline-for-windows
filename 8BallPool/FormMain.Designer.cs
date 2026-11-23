@@ -1,11 +1,13 @@
-﻿namespace _8BallPool
+﻿#nullable enable
+
+namespace EightBallPool
 {
     partial class FormMain
     {
         /// <summary>
         /// Required designer variable.
         /// </summary>
-        private System.ComponentModel.IContainer components = null;
+        private System.ComponentModel.IContainer? components = null;
 
         /// <summary>
         /// Clean up any resources being used.
@@ -29,30 +31,26 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
-            this.SuspendLayout();
-            // 
+            SuspendLayout();
+            //
             // FormMain
-            // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.BackColor = System.Drawing.Color.WhiteSmoke;
-            this.ClientSize = new System.Drawing.Size(789, 396);
-            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.MaximizeBox = false;
-            this.Name = "FormMain";
-            this.Opacity = 0.5D;
-            this.Text = "8 Ball Pool Guidelines";
-            this.TopMost = true;
-            this.Paint += new System.Windows.Forms.PaintEventHandler(this.FormMain_Paint);
-            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FormMain_KeyDown);
-            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.FormMain_MouseDown);
-            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.FormMain_MouseMove);
-            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.FormMain_MouseUp);
-            this.ResumeLayout(false);
-
+            //
+            AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
+            AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
+            ClientSize = new System.Drawing.Size(789, 396);
+            Cursor = System.Windows.Forms.Cursors.Hand;
+            FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+            Icon = (System.Drawing.Icon?)resources.GetObject("$this.Icon");
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "FormMain";
+            ShowInTaskbar = false;
+            StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            Text = "8 Ball Pool Guidelines";
+            TopMost = true;
+            ResumeLayout(false);
         }
 
         #endregion
     }
 }
-

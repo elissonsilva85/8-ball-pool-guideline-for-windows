@@ -3,8 +3,17 @@ name: Build and Package
 on:
   push:
     branches: [main, master]
+    tags: ['v*']
   pull_request:
     branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
 
 jobs:
   build:
@@ -13,48 +22,62 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '11.0.x'
 
       - name: Set version number
         id: version
         shell: pwsh
         run: |
-          $version = "1.0.${{ github.run_number }}.0"
-          echo "VERSION=$version" >> $env:GITHUB_OUTPUT
-          echo "Building version $version"
+          # Tag builds (e.g. v2.0.0.0) use the tag as the version; other builds get a CI build number.
+          if ('${{ github.ref_type }}' -eq 'tag') {
+            $version = '${{ github.ref_name }}'.TrimStart('v')
+          } else {
+            $version = "2.0.${{ github.run_number }}.0"
+          }
+          "VERSION=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Building version $version"
 
-          $file = "8BallPool/Properties/AssemblyInfo.cs"
-          $content = Get-Content $file -Raw
-          $content = $content -replace 'AssemblyVersion\("[\d\.]+"\)', "AssemblyVersion(`"$version`")"
-          $content = $content -replace 'AssemblyFileVersion\("[\d\.]+"\)', "AssemblyFileVersion(`"$version`")"
-          Set-Content $file $content
+      - name: Build
+        run: dotnet build 8BallPool.slnx -c Release -p:Version=${{ steps.version.outputs.VERSION }}
 
-      - name: Build solution
-        run: msbuild 8BallPool.sln /p:Configuration=Release /p:Platform="Any CPU" /verbosity:minimal
+      - name: Publish (self-contained single file)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          foreach ($rid in 'win-x64', 'win-arm64') {
+            dotnet publish 8BallPool/8BallPool.csproj -c Release -r $rid `
+              --self-contained true `
+              -p:PublishSingleFile=true `
+              -p:EnableCompressionInSingleFile=true `
+              -p:IncludeNativeLibrariesForSelfExtract=true `
+              -p:DebugType=none `
+              -p:Version=${{ steps.version.outputs.VERSION }} `
+              -o "publish/$rid"
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            Copy-Item "publish/$rid/8BallPool.exe" "dist/8BallPool-$rid.exe"
+          }
+          Get-ChildItem dist | Format-Table Name, Length
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: 8BallPool-v${{ steps.version.outputs.VERSION }}
-          path: |
-            8BallPool/bin/Release/8BallPool.exe
-            8BallPool/bin/Release/8BallPool.exe.config
+          path: dist/*.exe
           if-no-files-found: error
 
       - name: Create GitHub Release
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v3
         with:
-          tag_name: v${{ steps.version.outputs.VERSION }}
-          name: Release v${{ steps.version.outputs.VERSION }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
           body: |
-            Automated release from build #${{ github.run_number }}
-
-            **Version:** ${{ steps.version.outputs.VERSION }}
-            **Commit:** ${{ github.sha }}
-          files: |
-            8BallPool/bin/Release/8BallPool.exe
-            8BallPool/bin/Release/8BallPool.exe.config
+            Download `8BallPool-win-x64.exe` (most PCs) or `8BallPool-win-arm64.exe` (ARM devices such as Snapdragon laptops).
+            No installation or .NET runtime required.
+          files: dist/*.exe
