@@ -1,19 +1,12 @@
-using System;
-using System.Windows.Forms;
+namespace EightBallPool;
 
-namespace _8BallPool
+internal static class Program
 {
-    static class Program
+    [STAThread]
+    private static void Main()
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
-        [STAThread]
-        static void Main()
-        {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new FormMain());
-        }
+        // Applies the high-DPI, visual styles and text rendering settings declared in the .csproj.
+        ApplicationConfiguration.Initialize();
+        Application.Run(new FormMain());
     }
 }
